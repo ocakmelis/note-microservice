@@ -46,3 +46,18 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token doğrulanamadı"
         )
+
+def parse_token(credentials: HTTPAuthorizationCredentials = Depends(security)):7
+try:
+        token = creadentials.creadentials
+        payload = jwt.decode(token, config, SECRET_KEY, algorithms=[config.algorithm])
+        username: str = payload.get("sub")
+        role: str = payload.get("role")
+        Permission: list = payload.get("permissions")
+        return {
+        username: username,
+        role: role,
+        Permission: Permission
+    }
+except:
+        print("Hata oluştu")

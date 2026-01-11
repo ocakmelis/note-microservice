@@ -1,18 +1,3 @@
-#from pydantic import BaseModel
-#from typing import Optional
-
-# Kullanıcı Modelleri
-#class UserBase(BaseModel):
-#    username: str
-#    password: str
-
-#class User(BaseModel):
-#    id: int
-#    username: str
-    
-#    class Config:
-#        from_attributes = True
-
 from sqlalchemy import Column, Integer, String
 from internal.database.database import Base
 

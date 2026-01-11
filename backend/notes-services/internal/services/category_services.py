@@ -6,7 +6,6 @@ class CategoryService:
     
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.api_url = "https://openrouter.ai/api/v1/chat/completions"
     
     def generate_tags(self, text: str) -> list[str]:
         """Metin için etiketler oluşturur"""

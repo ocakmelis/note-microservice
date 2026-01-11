@@ -1,28 +1,16 @@
-from pydantic import BaseModel
-from typing import Optional
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, ARRAY
+from sqlalchemy.sql import func
+from internal.database.database import Base
 
-# Not Modelleri
-class NoteBase(BaseModel):
-    title: str
-    content: str
-
-class NoteCreate(NoteBase):
-    pass
-
-class Note(NoteBase):
-    id: int
-    owner_id: int
+class Note(Base):
+    __tablename__ = "notes"
     
-    class Config:
-        from_attributes = True
-
-# Yanıt Modelleri
-class SummaryResponse(BaseModel):
-    summary: str
-
-class CategoryResponse(BaseModel):
-    tags: list[str]
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    category = Column(String(100))
+    summary = Column(Text)
+    tags = Column(ARRAY(String), default=[])
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

@@ -8,8 +8,6 @@ from user_services import get_user_by_username
 
 router = APIRouter(prefix="/notes", tags=["Yapay Zeka Özellikleri"])
 
-API_KEY = "your-api-key-here"
-
 summary_service = SummaryService(API_KEY)
 category_service = CategoryService(API_KEY)
 

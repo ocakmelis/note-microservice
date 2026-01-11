@@ -1,64 +1,67 @@
 from models import NoteCreate, Note
-from database import notes_db, get_next_note_id
+#from database import notes_db, get_next_note_id
 from fastapi import HTTPException
 from typing import Optional
+from sqlalchemy.orm import Session
 
-def create_note(note_data: NoteCreate, user_id: int):
+from internal.repository.note_repository import (
+    create_note as repo_create_note,
+    get_notes_by_user,
+    get_note_by_id as repo_get_note,
+    update_note as repo_update_note,
+    delete_note as repo_delete_note
+)
+from internal.models.schemas import NoteCreate
+
+
+def create_note(db: Session, note_data: NoteCreate, user_id: int):
     """Yeni not oluşturur"""
-    new_note = {
-        "id": get_next_note_id(),
-        "title": note_data.title,
-        "content": note_data.content,
-        "owner_id": user_id
-    }
-    
-    notes_db.append(new_note)
-    return Note(**new_note)
+    return repo_create_note(
+        db=db,
+        title=note_data.title,
+        content=note_data.content,
+        user_id=user_id
+    )
 
-def get_all_notes(user_id: int, title_filter: Optional[str] = None):
+
+def get_all_notes(
+    db: Session,
+    user_id: int,
+    title_filter: Optional[str] = None
+):
     """Kullanıcının tüm notlarını getirir"""
-    user_notes = [note for note in notes_db if note["owner_id"] == user_id]
-    
-    # Eğer başlık filtresi varsa uygula
-    if title_filter:
-        user_notes = [note for note in user_notes if title_filter.lower() in note["title"].lower()]
-    
-    return [Note(**note) for note in user_notes]
+    return get_notes_by_user(db, user_id, title_filter)
 
-def get_note_by_id(note_id: int, user_id: int):
-    """Belirli bir notu getirir"""
-    for note in notes_db:
-        if note["id"] == note_id:
-            # Not kullanıcıya ait mi kontrol et
-            if note["owner_id"] != user_id:
-                raise HTTPException(status_code=403, detail="Bu nota erişim yetkiniz yok")
-            return Note(**note)
-    
-    raise HTTPException(status_code=404, detail="Not bulunamadı")
 
-def update_note(note_id: int, note_data: NoteCreate, user_id: int):
-    """Bir notu günceller"""
-    for note in notes_db:
-        if note["id"] == note_id:
-            # Not kullanıcıya ait mi kontrol et
-            if note["owner_id"] != user_id:
-                raise HTTPException(status_code=403, detail="Bu notu güncelleme yetkiniz yok")
-            
-            note["title"] = note_data.title
-            note["content"] = note_data.content
-            return Note(**note)
-    
-    raise HTTPException(status_code=404, detail="Not bulunamadı")
+def get_note_by_id(
+    db: Session,
+    note_id: int,
+    user_id: int
+):
+    """ID ile not getirir"""
+    note = repo_get_note(db, note_id, user_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Not bulunamadı")
+    return note
 
-def delete_note(note_id: int, user_id: int):
-    """Bir notu siler"""
-    for i, note in enumerate(notes_db):
-        if note["id"] == note_id:
-            # Not kullanıcıya ait mi kontrol et
-            if note["owner_id"] != user_id:
-                raise HTTPException(status_code=403, detail="Bu notu silme yetkiniz yok")
-            
-            notes_db.pop(i)
-            return {"message": "Not başarıyla silindi"}
-    
-    raise HTTPException(status_code=404, detail="Not bulunamadı")
+
+def update_note(
+    db: Session,
+    note_id: int,
+    note_data: NoteCreate,
+    user_id: int
+):
+    """Not günceller"""
+    note = get_note_by_id(db, note_id, user_id)
+    return repo_update_note(db, note, note_data)
+
+
+def delete_note(
+    db: Session,
+    note_id: int,
+    user_id: int
+):
+    """Not siler"""
+    note = get_note_by_id(db, note_id, user_id)
+    repo_delete_note(db, note)
+    return {"message": "Not başarıyla silindi"}

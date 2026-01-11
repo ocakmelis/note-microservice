@@ -30,12 +30,11 @@ def get_user_by_username(username: str):
     try:
         user = user.repository.get_user_by_username(db, username)
         return user
-    catch:
+    except:
         return None
     
 
-def login(user_data);
-"""Kullanıcı girişi yapar ve token döndürür"""
+def login(user_data):
     user = authenticate_user(user_data.username, user_data.password)
     
     if not user:
