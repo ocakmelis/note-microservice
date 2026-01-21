@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:13
+    container_name: notes_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: notes_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - notes_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # User Service (User + Auth)
+  user-service:
+    build: ./user-service
+    container_name: user_service
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/notes_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - notes_network
+    restart: unless-stopped
+
+  # Note Service
+  note-service:
+    build: ./note-service
+    container_name: note_service
+    ports:
+      - "5003:5003"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/notes_db
+      USER_SERVICE_URL: http://user-service:5001
+    depends_on:
+      - postgres
+      - user-service
+    networks:
+      - notes_network
+    restart: unless-stopped
+
+  # Chat Service
+  chat-service:
+    build: ./chat-service
+    container_name: chat_service
+    ports:
+      - "5004:5004"
+    environment:
+      USER_SERVICE_URL: http://user-service:5001
+      NOTE_SERVICE_URL: http://note-service:5003
+    depends_on:
+      - user-service
+      - note-service
+    networks:
+      - notes_network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      USER_SERVICE_URL: http://user-service:5001
+      NOTE_SERVICE_URL: http://note-service:5003
+      CHAT_SERVICE_URL: http://chat-service:5004
+    depends_on:
+      - user-service
+      - note-service
+      - chat-service
+    networks:
+      - notes_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  notes_network:
+    driver: bridge
