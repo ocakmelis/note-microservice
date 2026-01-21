@@ -6,7 +6,6 @@ from config import settings
 from vector_store import VectorStore
 
 class LangChainManager:
-    """LangChain Chat Manager with Memory"""
     
     def __init__(self):
         self.llm = ChatOpenAI(

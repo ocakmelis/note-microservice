@@ -1,16 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from internal.routers.user_service_router import router as user_router
+from internal.routers.auth_service_router import router as auth_router 
 from internal.routers.note_service_router import router as note_router
 from internal.routers.chat_service_router import router as chat_router
 
 app = FastAPI(
     title="Notus API Gateway",
-    description="Mikroservis mimarisi için API Gateway - User, Note ve Chat servisleri",
+    description="Mikroservis mimarisi için API Gateway - Sadece Yönlendirme Katmanı",
     version="3.0.0"
 )
 
-# CORS
+# CORS Ayarları
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,29 +19,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routerları ekle
-app.include_router(user_router)
-app.include_router(note_router)
-app.include_router(chat_router)
+# Rotalar iş mantığı barındırmadan ilgili servislere proxy görevi görür.
+app.include_router(auth_router, prefix="/auth", tags=["Auth & User"])
+app.include_router(note_router, prefix="/notes", tags=["Notes"])
+app.include_router(chat_router, prefix="/chat", tags=["Chat"])
 
 @app.get("/")
 def root():
     return {
         "message": "Notus API Gateway",
-        "version": "3.0.0",
-        "services": {
-            "users": "/users - Kullanıcı yönetimi ve kimlik doğrulama",
-            "notes": "/notes - Not yönetimi, tag atama, AI özetleme",
-            "chat": "/chat - LangChain chatbot (hafızalı, RAG destekli)"
-        },
-        "docs": "/docs",
-        "health": "/health"
+        "status": "Running",
+        "docs": "/docs"
     }
 
 @app.get("/health")
 def health():
     return {
         "status": "healthy",
-        "service": "api-gateway",
-        "version": "3.0.0"
+        "service": "api-gateway"
     }

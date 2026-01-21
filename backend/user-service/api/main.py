@@ -1,4 +1,3 @@
-cat > user-service/api/main.py << 'EOF'
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import sys
@@ -10,16 +9,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from internal.routers import user_router, auth_router
 from internal.database.database import engine, Base
 
-# Database tablolarını oluştur
+# Database tablolarını oluştur 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="User Service",
-    description="Kullanıcı yönetimi ve kimlik doğrulama mikroservisi",
-    version="1.0.0"
+    title="Auth & User Service",
+    description= '',
+    version="2.0.0"
 )
 
-# CORS ayarları
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,26 +26,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Router'ları ekle
-app.include_router(user_router.router, prefix="/api/v1/users", tags=["users"])
-app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["auth"])
-
-@app.get("/")
-async def root():
-    return {
-        "message": "User Service is running",
-        "service": "user-service",
-        "endpoints": {
-            "users": "/api/v1/users",
-            "auth": "/api/v1/auth"
-        }
-    }
+# Prefixleri sadeleştiriyoruz ki Gateway kolayca yönlendirsin
+app.include_router(user_router.router, prefix="/users", tags=["Users"])
+app.include_router(auth_router.router, prefix="/auth", tags=["Authentication"])
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "user-service"}
+    return {"status": "healthy", "service": "auth-service"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5001)
-EOF
+    uvicorn.run(app, host="0.0.0.0", port=8001)

@@ -1,49 +1,31 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import datetime
+from sqlalchemy.orm import Session
+from internal.models.user_model import User # Model yolunun doğruluğunu teyit et
 
-class NoteCreate(BaseModel):
-    """Not oluşturma request"""
-    title: str = Field(..., min_length=1, max_length=200)
-    content: str = Field(..., min_length=1)
-    category: Optional[str] = Field(None, max_length=100)
-
-class NoteUpdate(BaseModel):
-    """Not güncelleme request"""
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    content: Optional[str] = Field(None, min_length=1)
-    category: Optional[str] = Field(None, max_length=100)
-
-class NoteResponse(BaseModel):
-    """Not detay response"""
-    id: int
-    title: str
-    content: str
-    category: Optional[str]
-    summary: Optional[str]
-    tags: List[str] = []
-    user_id: int
-    created_at: datetime
-    updated_at: datetime
+class UserRepository:
+    # Sadece veritabanı sorgusu yapar, iş mantığı içermez.
     
-    class Config:
-        from_attributes = True
+    @staticmethod
+    def get_by_id(db: Session, user_id: int):
+        return db.query(User).filter(User.id == user_id).first()
 
-class NoteListResponse(BaseModel):
-    """Not liste response"""
-    id: int
-    title: str
-    category: Optional[str]
-    summary: Optional[str]
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
+    @staticmethod
+    def get_by_username(db: Session, username: str):
+        # Username üzerinden kullanıcıyı bulur (Login ve Register kontrolleri için)
+        return db.query(User).filter(User.username == username).first()
 
-class SummaryResponse(BaseModel):
-    """Özet response"""
-    summary: str
+    @staticmethod
+    def create_user(db: Session, user_obj: User):
+        # Yeni kullanıcıyı veritabanına yazar
+        db.add(user_obj)
+        db.commit()
+        db.refresh(user_obj)
+        return user_obj
 
-class CategoryResponse(BaseModel):
-    """Etiket response"""
-    tags: List[str]
+    @staticmethod
+    def delete_user(db: Session, user_id: int):
+        # Kullanıcıyı siler 
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            db.delete(user)
+            db.commit()
+        return user

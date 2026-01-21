@@ -13,7 +13,7 @@ def create_note(
     note: NoteCreate, 
     db: Session = Depends(get_db)
 ):
-    """Yeni bir not oluşturur"""
+    # Yeni bir not oluşturur
     # TODO: get_current_user eklenecek (user-service ile iletişim)
     user_id = 1  # Geçici olarak hardcoded
     
@@ -35,7 +35,7 @@ def get_notes(
     title: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    """Kullanıcının tüm notlarını listeler"""
+    # Kullanıcının tüm notlarını listeler
     user_id = 1  # Geçici olarak hardcoded
     
     query = db.query(Note).filter(Note.user_id == user_id)
@@ -51,7 +51,7 @@ def get_note(
     note_id: int,
     db: Session = Depends(get_db)
 ):
-    """Belirli bir notu ID ile getirir"""
+    # Belirli bir notu ID ile getirir
     user_id = 1  # Geçici olarak hardcoded
     
     note = db.query(Note).filter(
@@ -72,7 +72,7 @@ def update_note(
     note_update: NoteUpdate,
     db: Session = Depends(get_db)
 ):
-    """Var olan bir notu günceller"""
+    # Var olan bir notu günceller
     user_id = 1  # Geçici olarak hardcoded
     
     note = db.query(Note).filter(
@@ -104,7 +104,7 @@ def delete_note(
     note_id: int,
     db: Session = Depends(get_db)
 ):
-    """Belirli notu siler"""
+    # Belirli notu siler
     user_id = 1  # Geçici olarak hardcoded
     
     note = db.query(Note).filter(
