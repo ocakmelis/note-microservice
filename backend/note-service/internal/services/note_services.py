@@ -1,5 +1,3 @@
-from models import NoteCreate, Note
-#from database import notes_db, get_next_note_id
 from fastapi import HTTPException
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -11,7 +9,7 @@ from internal.repository.note_repository import (
     update_note as repo_update_note,
     delete_note as repo_delete_note
 )
-from internal.models.schemas import NoteCreate
+from internal.schemas.note_schemas import NoteCreate, NoteUpdate
 
 
 def create_note(db: Session, note_data: NoteCreate, user_id: int):
@@ -20,6 +18,7 @@ def create_note(db: Session, note_data: NoteCreate, user_id: int):
         db=db,
         title=note_data.title,
         content=note_data.content,
+        category=note_data.category,
         user_id=user_id
     )
 
@@ -48,7 +47,7 @@ def get_note_by_id(
 def update_note(
     db: Session,
     note_id: int,
-    note_data: NoteCreate,
+    note_data: NoteUpdate,
     user_id: int
 ):
     """Not günceller"""

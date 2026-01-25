@@ -1,6 +1,25 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-sqlalchemy==2.0.23
+# FastAPI ve Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+
+# Database
+sqlalchemy==2.0.35
 psycopg2-binary==2.9.9
-pydantic==2.5.0
-python-multipart==0.0.6
+
+# JWT Authentication ← YENİ
+PyJWT==2.8.0
+
+# Password Hashing ← YENİ (login için gerekli)
+passlib[bcrypt]==1.7.4
+
+# Utilities
+python-dotenv==1.0.0
+httpx==0.27.0
+
+# Validation
+pydantic==2.9.0
+pydantic-settings==2.5.0
+pydantic[email]==2.9.0
+
+# Optional
+# alembic==1.13.0  # Database migrations

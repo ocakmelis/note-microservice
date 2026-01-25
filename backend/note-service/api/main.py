@@ -3,22 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 import sys
 import os
 
-# Internal modülleri import edebilmek için path ekle
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from internal.routers import note_router
+from internal.routers import note_router, auth_router
 from internal.database.database import engine, Base
 
-# Database tablolarını oluştur
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Note Service",
-    description="Not yönetimi mikroservisi",
+    description="Not yönetimi mikroservisi - JWT Auth",
     version="1.0.0"
 )
 
-# CORS ayarları
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,12 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Router'ları ekle (SADECE note router)
-app.include_router(note_router.router, prefix="/api/v1/notes", tags=["notes"])
+app.include_router(auth_router.router, prefix="/api/v1")
+app.include_router(note_router.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "Note Service is running", "service": "note-service"}
+    return {"message": "Note Service with JWT Auth", "version": "1.0.0"}
 
 @app.get("/health")
 async def health_check():
@@ -41,7 +38,3 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5003)
-
-
-
-

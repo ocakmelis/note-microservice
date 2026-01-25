@@ -18,6 +18,9 @@ PUBLIC_PATHS = [
 
 
 async def auth_middleware(request: Request, call_next):
+    """
+    Auth middleware - Token doğrulama ve user_id'yi request.state'e kaydetme
+    """
     path = request.url.path
 
     # Public endpoint kontrolü
@@ -27,9 +30,12 @@ async def auth_middleware(request: Request, call_next):
     # Authorization header kontrolü
     auth_header = request.headers.get("authorization")
     if not auth_header:
-        raise HTTPException(status_code=401, detail="Authorization header missing")
+        raise HTTPException(
+            status_code=401, 
+            detail="Authorization header missing"
+        )
 
-    # Auth service doğrulama
+    # Auth service ile token doğrulama
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(
@@ -38,10 +44,40 @@ async def auth_middleware(request: Request, call_next):
             )
 
             if response.status_code != 200:
-                raise HTTPException(status_code=401, detail="Invalid token")
+                raise HTTPException(
+                    status_code=401, 
+                    detail="Invalid or expired token"
+                )
+            
+            # Auth service'den dönen user bilgisini al
+            user_data = response.json()
+            
+            # User ID'yi request.state'e kaydet
+            # Böylece downstream servisler kullanabilir
+            request.state.user_id = user_data.get("user_id")
+            request.state.username = user_data.get("username")
+            request.state.email = user_data.get("email")
+            
+            logger.info(f"User authenticated: {request.state.user_id}")
 
     except httpx.ConnectError:
         logger.error("Auth service unreachable")
-        raise HTTPException(status_code=503, detail="Auth service unavailable")
+        raise HTTPException(
+            status_code=503, 
+            detail="Auth service unavailable"
+        )
+    except httpx.TimeoutException:
+        logger.error("Auth service timeout")
+        raise HTTPException(
+            status_code=504, 
+            detail="Auth service timeout"
+        )
+    except Exception as e:
+        logger.error(f"Auth middleware error: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Internal authentication error"
+        )
 
-    return await call_next(request)
+    response = await call_next(request)
+    return response
