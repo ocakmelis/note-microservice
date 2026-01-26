@@ -2,14 +2,14 @@ from fastapi import HTTPException
 from typing import Optional
 from sqlalchemy.orm import Session
 
-from internal.repository.note_repository import (
+from repository.note_repository import (
     create_note as repo_create_note,
     get_notes_by_user,
     get_note_by_id as repo_get_note,
     update_note as repo_update_note,
     delete_note as repo_delete_note
 )
-from internal.schemas.note_schemas import NoteCreate, NoteUpdate
+from schemas.note_schemas import NoteCreate, NoteUpdate
 
 
 def create_note(db: Session, note_data: NoteCreate, user_id: int):

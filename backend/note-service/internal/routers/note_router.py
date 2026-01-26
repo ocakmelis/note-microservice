@@ -35,7 +35,6 @@ def get_notes(
         title=title
     )
 
-
 @router.get("/{note_id}", response_model=NoteResponse)
 def get_note(
     note_id: int,
