@@ -9,14 +9,12 @@ from internal.dependencies import get_current_user_id
 
 router = APIRouter(prefix="/notes", tags=["Notlar"])
 
-
-@router.post("", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
+@router.post("")
 def create_note(
     note: NoteCreate, 
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id)
 ):
-    """Yeni not oluşturur - LOGIN GEREKLİ"""
     return NoteHandler.create_note(
         note_data=note,
         user_id=user_id,
